@@ -15,8 +15,9 @@ const (
 	mqttClientID  = "game_processor"
 	mqttTopic     = "play_game"
 	kafkaBroker   = "pkc-l7pr2.ap-south-1.aws.confluent.cloud:9092"
-	kafkaTopic    = "game_topic"
 )
+
+var kafkaTopic = "game_topic"
 
 var kafkaProducer *kafka.Producer
 
@@ -26,8 +27,10 @@ func onMQTTMessageReceived(client MQTT.Client, msg MQTT.Message) {
 
 	deliveryChan := make(chan kafka.Event)
 
+	expirationTime := time.Now().Add(1 * time.Minute)
+
 	message := &kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: kafkaTopic, Partition: kafka.PartitionAny},
+		TopicPartition: kafka.TopicPartition{Topic: &kafkaTopic, Partition: kafka.PartitionAny},
 		Value:          []byte(id),
 		Headers:        []kafka.Header{{Key: "expiration-time", Value: []byte(fmt.Sprintf("%d", expirationTime.UnixNano()/int64(time.Millisecond)))}},
 	}
