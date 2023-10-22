@@ -8,13 +8,13 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/spf13/viper"
 )
 
 const (
 	mqttBrokerURL = "tls://s341caa4.ala.us-east-1.emqxsl.com:8883"
 	mqttClientID  = "game_processor"
 	mqttTopic     = "play_game"
-	kafkaBroker   = "pkc-l7pr2.ap-south-1.aws.confluent.cloud:9092"
 )
 
 var kafkaTopic = "game_topic"
@@ -62,7 +62,25 @@ func main() {
 
 	fmt.Println("Listening for messages on MQTT topic 'play_game'...")
 
-	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": kafkaBroker, "enable.idempotence": true})
+	viper.SetConfigName("client")
+	viper.AddConfigPath(".")
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading client.properties: %v", err)
+		os.Exit(1)
+	}
+
+	configMap := &kafka.ConfigMap{
+		"bootstrap.servers":  viper.GetString("bootstrap.servers"),
+		"security.protocol":  viper.GetString("security.protocol"),
+		"sasl.mechanisms":    viper.GetString("sasl.mechanisms"),
+		"sasl.username":      viper.GetString("sasl.username"),
+		"sasl.password":      viper.GetString("sasl.password"),
+		"session.timeout.ms": viper.GetString("session.timeout.ms"),
+		"enable.idempotence": true,
+	}
+
+	p, err := kafka.NewProducer(configMap)
 	if err != nil {
 		log.Fatalf("Failed to create Kafka producer: %v", err)
 		os.Exit(1)
