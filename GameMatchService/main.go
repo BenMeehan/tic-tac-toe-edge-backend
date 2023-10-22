@@ -17,13 +17,13 @@ const (
 	mqttTopic     = "play_game"
 )
 
-var kafkaTopic = "game_topic"
+var kafkaTopic = "tic-tac-toe"
 
 var kafkaProducer *kafka.Producer
 
 func onMQTTMessageReceived(client MQTT.Client, msg MQTT.Message) {
 	id := string(msg.Payload())
-	fmt.Printf("Received ID: %s\n")
+	fmt.Printf("Received ID: %s\n", id)
 
 	deliveryChan := make(chan kafka.Event)
 
@@ -76,7 +76,6 @@ func main() {
 		"sasl.mechanisms":    viper.GetString("sasl.mechanisms"),
 		"sasl.username":      viper.GetString("sasl.username"),
 		"sasl.password":      viper.GetString("sasl.password"),
-		"session.timeout.ms": viper.GetString("session.timeout.ms"),
 		"enable.idempotence": true,
 	}
 
